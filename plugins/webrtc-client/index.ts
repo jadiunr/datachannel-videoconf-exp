@@ -15,6 +15,7 @@ export default class WebRTCClient {
 
   private peerJoinCallback!: (stream: MediaStream) => void;
   private peerLeaveCallback!: (streamId: string) => void;
+  private receivedDataCallback!: (data: any) => void;
 
   async setLocalStream() {
     const constraints = {
@@ -103,6 +104,10 @@ export default class WebRTCClient {
   onPeerLeave(f: (streamId: string) => void) {
     this.peerLeaveCallback = f;
   }
+
+  onReceivedData(f: (data: any) => void) {
+    this.receivedDataCallback = f;
+  } 
   
   private emitRoom(msg: any) {
     this.socket.emit("message", msg);
@@ -180,7 +185,12 @@ export default class WebRTCClient {
         };
       };
     };
-    dataChannel.onmessage = (ev) => console.log(ev);
+    dataChannel.onmessage = ({data: buffer}) => {
+      console.log(buffer);
+      const blob = new Blob([buffer], {type: "video/webm"});
+      const blobUrl = URL.createObjectURL(blob);
+      this.receivedDataCallback(blobUrl);
+    };
     dataChannel.onerror = (ev) => console.log(ev);
     dataChannel.onclose = (ev) => console.log(ev);
 
@@ -209,7 +219,12 @@ export default class WebRTCClient {
           };
         };
       };
-      dataChannel.onmessage = (ev) => console.log(ev);
+      dataChannel.onmessage = ({data: buffer}) => {
+        console.log(buffer);
+        const blob = new Blob([buffer], {type: "video/webm"});
+        const blobUrl = URL.createObjectURL(blob);
+        this.receivedDataCallback(blobUrl);
+      };
       dataChannel.onerror = (ev) => console.log(ev);
       dataChannel.onclose = (ev) => console.log(ev);
     };

@@ -13,6 +13,8 @@ section
     video(ref="recordedVideo" autoplay)
   div
     stream-video(v-for="stream in streams" :stream="stream" :key="stream.id")
+  div
+    video(ref="dataChannelVideo" autoplay)
 </template>
 
 <script lang="ts">
@@ -52,6 +54,9 @@ export default class extends Vue {
     });
     this.rtc.onPeerLeave(streamId => {
       this.$delete(this.streams, streamId);
+    });
+    this.rtc.onReceivedData((data) => {
+      (this.$refs.dataChannelVideo as HTMLVideoElement).src = data;
     });
   }
 
