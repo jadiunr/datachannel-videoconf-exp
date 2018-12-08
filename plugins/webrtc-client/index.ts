@@ -169,8 +169,16 @@ export default class WebRTCClient {
 
     const dataChannel = peerConnection.createDataChannel("hoge");
     dataChannel.onopen = (ev) => {
-      console.log(ev);
-      dataChannel.send("Hello.");
+      this.recorder.start(1000);
+      this.recorder.ondataavailable = async ({data: blob}) => {
+        console.log(blob);
+        const reader = new FileReader();
+        reader.readAsArrayBuffer(blob);
+        reader.onload = () => {
+          const buf = reader.result as ArrayBuffer;
+          dataChannel.send(buf);
+        };
+      };
     };
     dataChannel.onmessage = (ev) => console.log(ev);
     dataChannel.onerror = (ev) => console.log(ev);
@@ -190,8 +198,16 @@ export default class WebRTCClient {
     peerConnection.ondatachannel = (ev) => {
       const dataChannel = ev.channel;
       dataChannel.onopen = (ev) => {
-        console.log(ev);
-        dataChannel.send("Hola.");
+        this.recorder.start(1000);
+        this.recorder.ondataavailable = async ({data: blob}) => {
+          console.log(blob);
+          const reader = new FileReader();
+          reader.readAsArrayBuffer(blob);
+          reader.onload = () => {
+            const buf = reader.result as ArrayBuffer;
+            dataChannel.send(buf);
+          };
+        };
       };
       dataChannel.onmessage = (ev) => console.log(ev);
       dataChannel.onerror = (ev) => console.log(ev);
