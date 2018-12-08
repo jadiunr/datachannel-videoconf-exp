@@ -1,8 +1,11 @@
 import io from "socket.io-client";
+declare const MediaRecorder: any;
 
 export default class WebRTCClient {
-  private localStream!: MediaStream | null;
+  private localStream: MediaStream | null;
   private remoteStreams: { [index: string]: MediaStream } = {};
+  private recorder: any;
+  private mediaChunks: BlobPart[] = [];
 
   private peerConnections: RTCPeerConnection[] = [];
 
@@ -22,8 +25,28 @@ export default class WebRTCClient {
     return this.localStream;
   }
 
-  getLocalStream() {
-    return this.localStream;
+  startRecording() {
+    this.recorder = new MediaRecorder(this.localStream);
+    this.recorder.start(1000);
+    this.recorder.ondataavailable = (evt) => {
+      this.mediaChunks.push(evt.data);
+      console.log("PUSHED");
+      console.log(this.mediaChunks);
+    };
+  }
+
+  stopRecording() {
+    this.recorder.stop();
+    this.recorder.onstop = () => {
+      this.recorder = null;
+    };
+    return this.playRecorded();
+  }
+
+  private playRecorded() {
+    const videoBlob = new Blob(this.mediaChunks, { type: "video/webm" });
+    const blobUrl = URL.createObjectURL(videoBlob);
+    return blobUrl;
   }
 
   

@@ -6,8 +6,11 @@ section
   button(type="button" @click="stopVideo") Stop Video
   button(type="button" @click="connect") Connect
   button(type="button" @click="hangUp") Hang Up
+  button(type="button" @click="startRecording") Start Recording
+  button(type="button" @click="stopRecording") Stop Recording
   div
     video(ref="localVideo" autoplay)
+    video(ref="recordedVideo" autoplay)
   div
     stream-video(v-for="stream in streams" :stream="stream" :key="stream.id")
 </template>
@@ -54,6 +57,14 @@ export default class extends Vue {
 
   hangUp() {
 
+  }
+
+  startRecording() {
+    this.rtc.startRecording();
+  }
+
+  async stopRecording() {
+    (this.$refs.recordedVideo as HTMLVideoElement).src = await this.rtc.stopRecording();
   }
 }
 </script>
