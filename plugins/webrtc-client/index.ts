@@ -8,6 +8,7 @@ export default class WebRTCClient {
   private mediaChunks: BlobPart[] = [];
 
   private peerConnections: RTCPeerConnection[] = [];
+  private dataChannels: RTCDataChannel[] = [];
 
   private port = 3001;
   private socket!: SocketIOClient.Socket;
@@ -22,11 +23,11 @@ export default class WebRTCClient {
     };
 
     this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+    this.recorder = new MediaRecorder(this.localStream);
     return this.localStream;
   }
 
   startRecording() {
-    this.recorder = new MediaRecorder(this.localStream);
     this.recorder.start(1000);
     this.recorder.ondataavailable = (evt) => {
       this.mediaChunks.push(evt.data);
@@ -37,9 +38,6 @@ export default class WebRTCClient {
 
   stopRecording() {
     this.recorder.stop();
-    this.recorder.onstop = () => {
-      this.recorder = null;
-    };
     return this.playRecorded();
   }
 
@@ -156,31 +154,11 @@ export default class WebRTCClient {
     };
     const peer = new RTCPeerConnection(pc_config);
     
-    peer.ontrack = event => {
-      if (event.track.kind === 'video') {
-        const stream = event.streams[0];
-        this.remoteStreams[id] = stream;
-        this.peerJoinCallback(stream);
-
-        stream.onremovetrack = () => {
-          this.localStream!.getTracks().forEach(track => {
-            peer.removeTrack(peer.addTrack(track, this.localStream!));
-          });
-        };
-      }
-    };
-    
     peer.onicecandidate = evt => {
       if (evt.candidate) {
         this.sendIceCandidate(id, evt.candidate);
       }
     };
-    
-    if (this.localStream) {
-      this.localStream.getTracks().forEach(track => {
-        peer.addTrack(track, this.localStream!);
-      });
-    }
 
     return peer;
   }
@@ -188,6 +166,15 @@ export default class WebRTCClient {
   private makeOffer(id: any) {
     const peerConnection = this.prepareNewConnection(id);
     this.peerConnections[id] = peerConnection;
+
+    const dataChannel = peerConnection.createDataChannel("hoge");
+    dataChannel.onopen = (ev) => {
+      console.log(ev);
+      dataChannel.send("Hello.");
+    };
+    dataChannel.onmessage = (ev) => console.log(ev);
+    dataChannel.onerror = (ev) => console.log(ev);
+    dataChannel.onclose = (ev) => console.log(ev);
 
     peerConnection.createOffer().then(sessionDescription => {
       return peerConnection.setLocalDescription(sessionDescription);
@@ -199,6 +186,17 @@ export default class WebRTCClient {
   private setOffer(id: any, sessionDescription: RTCSessionDescriptionInit) {
     const peerConnection = this.prepareNewConnection(id);
     this.peerConnections[id] = peerConnection;
+
+    peerConnection.ondatachannel = (ev) => {
+      const dataChannel = ev.channel;
+      dataChannel.onopen = (ev) => {
+        console.log(ev);
+        dataChannel.send("Hola.");
+      };
+      dataChannel.onmessage = (ev) => console.log(ev);
+      dataChannel.onerror = (ev) => console.log(ev);
+      dataChannel.onclose = (ev) => console.log(ev);
+    };
 
     peerConnection.setRemoteDescription(sessionDescription).then(() => {
       this.makeAnswer(id);
@@ -226,5 +224,13 @@ export default class WebRTCClient {
   
   private callMe() {
     this.emitRoom({ type: "call me" });
+  }
+
+  private sleep(msec) {
+    return new Promise(function(resolve) {
+  
+       setTimeout(function() {resolve()}, msec);
+  
+    })
   }
 }
