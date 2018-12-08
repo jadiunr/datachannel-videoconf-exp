@@ -12,13 +12,13 @@ services:
     tty: true
     stdin_open: true
 
-  # sig:
-  #   container_name: 'dve_sig'
-  #   build: .
-  #   volumes:
-  #     - '.:/web'
-  #   ports:
-  #     - '3001:3001'
-  #   command: 'node signaling/app.js'
-  #   tty: true
-  #   stdin_open: true
+  sig:
+    container_name: 'dve_sig'
+    build: .
+    volumes:
+      - '.:/web'
+    ports:
+      - '3001:3001'
+    command: 'node signaling/index.js'
+    tty: true
+    stdin_open: true
