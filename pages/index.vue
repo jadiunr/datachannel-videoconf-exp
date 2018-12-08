@@ -1,10 +1,8 @@
-<template>
-  <section>
-    <h1 class="header">Nuxt TypeScript Starter</h1>
-    <div class="cards">
-      <Card v-for="person in people" :key="person.id" :person="person"></Card>
-    </div>
-  </section>
+<template lang="pug">
+section
+  h1.header Nuxt TypeScript Starter
+  .cards
+    card(v-for="person in people" :key="person.id" :person="person")
 </template>
 
 <script lang="ts">
@@ -24,14 +22,12 @@ export default class extends Vue {
   @State people
 }
 </script>
-<style scoped>
-.header {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana,
-    sans-serif;
-}
 
-.cards {
-  display: flex;
-  flex-wrap: wrap;
-}
+<style scoped lang="sass">
+.header
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif
+
+.cards
+  display: flex
+  flex-wrap: wrap
 </style>
