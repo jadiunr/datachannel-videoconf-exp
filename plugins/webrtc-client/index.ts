@@ -97,6 +97,35 @@ export default class WebRTCClient {
     this.stopAllConnection();
   }
 
+  async getSdpTest() {
+    const pc_config = {
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" }
+      ]
+    };
+    const peer = new RTCPeerConnection(pc_config);
+
+    peer.ontrack = event => {
+      console.log("ontrack");
+      const stream = event.streams[0];
+      stream.onremovetrack = () => {
+        this.localStream!.getTracks().forEach(track => {
+          peer.removeTrack(peer.addTrack(track, this.localStream!));
+        });
+      };
+    };
+
+    if (this.localStream) {
+      this.localStream.getTracks().forEach(track => {
+        peer.addTrack(track, this.localStream!);
+      });
+    }
+
+    const sdp = await peer.createOffer();
+    peer.setLocalDescription(sdp);
+    console.log(sdp.sdp);
+  }
+
   onPeerJoin(f: (stream: MediaStream) => void) {
     this.peerJoinCallback = f;
   }

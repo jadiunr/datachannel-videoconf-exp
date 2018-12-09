@@ -8,6 +8,7 @@ section
   button(type="button" @click="hangUp") Hang Up
   button(type="button" @click="startRecording") Start Recording
   button(type="button" @click="stopRecording") Stop Recording
+  button(type="button" @click="getSdpTest") Get SDP Test
   div
     video(ref="localVideo" autoplay)
     video(ref="recordedVideo" autoplay)
@@ -70,6 +71,10 @@ export default class extends Vue {
 
   async stopRecording() {
     (this.$refs.recordedVideo as HTMLVideoElement).src = await this.rtc.stopRecording();
+  }
+
+  getSdpTest() {
+    this.rtc.getSdpTest();
   }
 }
 </script>
